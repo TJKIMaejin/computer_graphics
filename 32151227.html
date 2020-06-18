@@ -35,18 +35,19 @@
         var stats = initStats();
 
         
-        var scene = new THREE.Scene();
+        var scene = new THREE.Scene();//장면 객체를 추가한다.
         
 
         
         var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        // 45도의 화각을 사용
 
 
         
         var renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
 
-        renderer.setClearColor(new THREE.Color(0xaaaaff, 1.0));
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(new THREE.Color(0xffffff, 1.0)); // 씬 전체의 배경생을 설적
+        renderer.setSize(window.innerWidth, window.innerHeight); // render의 사이즈를 브라우저 창에 맞게 정함
         renderer.shadowMapEnabled = true;
 
 
@@ -55,15 +56,16 @@
         textureGrass.wrapS = THREE.RepeatWrapping;
         textureGrass.wrapT = THREE.RepeatWrapping;
         textureGrass.repeat.set(3, 3);
+ 
 
-
-        var planeGeometry = new THREE.PlaneGeometry(1000, 200, 20, 20);
-        var planeMaterial = new THREE.MeshLambertMaterial({map: textureGrass});
+          // Geometry 생성 부분
+        var planeGeometry = new THREE.PlaneGeometry(500, 200, 20, 20);
+        var planeMaterial = new THREE.MeshLambertMaterial({map: textureGrass});                     // 물질이 광원에 반짝이지 않게 보이게 하는 객체
         var plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.receiveShadow = true;
 
-       
-        plane.rotation.x = -0.5 * Math.PI;
+        // 1. 평면 잔디 밭을 만들 기 위해 2차원 사각형을 만들 떄 사용 PlaneGeometry(500, 200, 20, 20) width, height widthsegments, height segmentss는 줄무니를 만들고 싶다면 사용 여러 줄무늬를 만들고 싶어 사용함
+        plane.rotation.x = -0.5 * Math.PI
         plane.position.x = 15;
         plane.position.y = 0;
         plane.position.z = 0;
@@ -93,52 +95,47 @@
         
         scene.add(sphere1);
 
-      
+
         camera.position.x = -20;
         camera.position.y = 15;
         camera.position.z = 45;
         camera.lookAt(new THREE.Vector3(10, 0, 0));
 
         
-        var ambiColor = "#ffffff";
-        var ambientLight = new THREE.AmbientLight(ambiColor);
+        var ambiColor = "#ffffff"; // 색상을 전체에 적용한다. 이
+        var ambientLight = new THREE.AmbientLight(ambiColor); //기본 광원 장면에 객체의 현재 색상에 빛의 생상을 더한다.
         scene.add(ambientLight);
 
+
+    
        
-        var spotLight0 = new THREE.SpotLight(0xcccccc);
-        spotLight0.position.set(-40, 60, -10);
-        spotLight0.lookAt(plane);
-        scene.add(spotLight0);
+
+        var pointColor = "#ffffff"; // 한직선에서 모든 방향으로 빛을 방사하는 광원이다.
+
+        //원뿔 모양처럼 빛이 분사된다. 그중 THREE.DirectionalLigh를 사용하여 빛을 아주 멀리 까지 사용했다.
+        var spotLight = new THREE.DirectionalLight(pointColor);
+
+        spotLight.position.set(30, 10, -50);
+        spotLight.castShadow = true;
+        spotLight.shadowCameraNear = 0.1;
+        spotLight.shadowCameraFar = 100;
+        spotLight.shadowCameraFov = 50;
+        spotLight.target = plane;
+        spotLight.distance = 0;
+        spotLight.shadowCameraNear = 2;
+        spotLight.shadowCameraFar = 200;
+        spotLight.shadowCameraLeft = -100;
+        spotLight.shadowCameraRight = 100;
+        spotLight.shadowCameraTop = 100;
+        spotLight.shadowCameraBottom = -100;
+        spotLight.shadowMapWidth = 2048;
+        spotLight.shadowMapHeight = 2048;
 
 
-        var target = new THREE.Object3D();
-        target.position = new THREE.Vector3(5, 0, 0);
+        scene.add(spotLight);
 
 
-        var pointColor = "#ffffff";
 
-var spotLight = new THREE.DirectionalLight(pointColor);
-spotLight.position.set(30, 10, -50);
-spotLight.castShadow = true;
-spotLight.shadowCameraNear = 0.1;
-spotLight.shadowCameraFar = 100;
-spotLight.shadowCameraFov = 50;
-spotLight.target = plane;
-spotLight.distance = 0;
-spotLight.shadowCameraNear = 2;
-spotLight.shadowCameraFar = 200;
-spotLight.shadowCameraLeft = -100;
-spotLight.shadowCameraRight = 100;
-spotLight.shadowCameraTop = 100;
-spotLight.shadowCameraBottom = -100;
-spotLight.shadowMapWidth = 2048;
-spotLight.shadowMapHeight = 2048;
-
-
-scene.add(spotLight);
-
-
-      
         document.getElementById("WebGL-output").appendChild(renderer.domElement);
 
         
@@ -147,7 +144,7 @@ scene.add(spotLight);
         
         var invert = 1;
         var phase = 0;
-
+       // controlㄹ러 관리
         var controls = new function () {
             this.rotationSpeed = 0.03;
             this.bouncingSpeed = 0.03;
@@ -167,15 +164,15 @@ scene.add(spotLight);
         var gui = new dat.GUI();
         gui.addColor(controls, 'ambientColor').onChange(function (e) {
             ambientLight.color = new THREE.Color(e);
-        });
+        }); //객체에 생상을 더한다.
 
         gui.addColor(controls, 'pointColor').onChange(function (e) {
             spotLight.color = new THREE.Color(e);
-        });
+        }); 
 
         gui.add(controls, 'intensity', 0, 5).onChange(function (e) {
             spotLight.intensity = e;
-        });
+        }); // 빛이 비추는 세기를 조절 할 수 있다.
 
 
         
@@ -184,9 +181,9 @@ scene.add(spotLight);
         render();
 
 
-        function createMesh(geom, imageFile) {
+        function createMesh(geom, imageFile) {  //물체에 이미지를 입히는 함수
             var texture = THREE.ImageUtils.loadTexture("../assets/" + imageFile);
-            var mat = new THREE.MeshPhongMaterial();
+            var mat = new THREE.MeshPhongMaterial(); //빛을 반짝이는 객체를 생성
             mat.map = texture;
 
             var mesh = new THREE.Mesh(geom, mat);
@@ -203,7 +200,7 @@ scene.add(spotLight);
             sphere1.position.x = 20 + ( 10 * (Math.cos(step)));
             sphere1.position.y = 2 + ( 10 * Math.abs(Math.sin(step)));
 
-
+                //공을 바운
 
             requestAnimationFrame(render);
             renderer.render(scene, camera);
@@ -213,9 +210,9 @@ scene.add(spotLight);
 
             var stats = new Stats();
 
-            stats.setMode(0); 
+            stats.setMode(0);  // 초당 함수를 측정할 수 있다.
 
-           
+
             stats.domElement.style.position = 'absolute';
             stats.domElement.style.left = '0px';
             stats.domElement.style.top = '0px';
